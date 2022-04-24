@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
 contract WorkingWithVariables {
@@ -38,6 +39,5 @@ contract WorkingWithVariables {
     function setMyString(string memory _myString) public {
         myString = _myString;
     }
-
 
 }
