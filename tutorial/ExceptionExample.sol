@@ -15,6 +15,5 @@ contract ExceptionExample {
         assert(balanceReceived[msg.sender] >= balanceReceived[msg.sender] - _amount);
         balanceReceived[msg.sender] -= _amount;
         _to.transfer(_amount);
-        
     }
 }
