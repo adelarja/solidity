@@ -1,53 +1,37 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
-contract Owned {
+contract Wallet is Ownable {
+    mapping(address => uint) public allowance;
 
-    address owner;
-
-    constructor() {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "you are not allowed");
+    modifier ownerOrAllowed(uint _amount) {
+        require(isOwner() || allowance[msg.sender] >= _amount, "You are not allowed");
         _;
     }
 
-}
-
-contract Wallet is Owned {
-    mapping(address => uint) public availableFunds;
-
-    using SafeMath for uint;
-
-    modifier onlyIfFunds(uint _amount) {
-        require(availableFunds[msg.sender] >= _amount, "Not enough funds");
-        _;
+    function reduceAllowance(address _who, uint _amount) internal {
+        allowance[_who] -= _amount;
     }
 
-    function receiveMoney() public payable onlyOwner {
-        availableFunds[msg.sender].add(msg.value);
+    function isOwner() internal view returns(bool) {
+        return owner() == msg.sender;
     }
 
-    function sendMoney(address _to, uint _amount) public payable onlyOwner onlyIfFunds(_amount) {
-        availableFunds[_to].add(_amount);
-        availableFunds[msg.sender].sub(_amount);
+    function addAllowance(address _who, uint _amount) public onlyOwner {
+        allowance[_who] = _amount;
     }
 
-    function transferMoney(address _to, uint _amount) public payable onlyIfFunds(_amount) {
-        availableFunds[_to].add(_amount);
-        availableFunds[msg.sender].sub(_amount);
-    }
-    
-    function withdrawMoney(uint _amount) public onlyIfFunds(_amount) {
-        payable(msg.sender).transfer(_amount);
-        availableFunds[msg.sender].sub(_amount);
+    function withdrawMoney(address payable _to, uint _amount) public ownerOrAllowed(_amount) {
+        require(_amount <= address(this).balance, "Not enough funds!");
+        if(!isOwner()){
+            reduceAllowance(_to, _amount);
+        }
+        _to.transfer(_amount);        
     }
 
     receive() external payable {
-        receiveMoney();
+
     }
 }
