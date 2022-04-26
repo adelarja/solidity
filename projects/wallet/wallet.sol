@@ -41,6 +41,10 @@ contract Wallet is Allowance {
         _to.transfer(_amount);        
     }
 
+    function renounceOwnership() public override {
+        revert("Can't renounce ownership here!");
+    }
+
     receive() external payable {
         emit MoneyReceived(msg.sender, msg.value);
     }
