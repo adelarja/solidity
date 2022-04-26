@@ -29,15 +29,19 @@ contract Allowance is Ownable {
 
 contract Wallet is Allowance {
 
+    event MoneySent(address indexed _beneficiary, uint _amount);
+    event MoneyReceived(address indexed _from, uint _amount);
+
     function withdrawMoney(address payable _to, uint _amount) public ownerOrAllowed(_amount) {
         require(_amount <= address(this).balance, "Not enough funds!");
         if(!isOwner()){
             reduceAllowance(_to, _amount);
         }
+        emit MoneySent(_to, _amount);
         _to.transfer(_amount);        
     }
 
     receive() external payable {
-
+        emit MoneyReceived(msg.sender, msg.value);
     }
 }
