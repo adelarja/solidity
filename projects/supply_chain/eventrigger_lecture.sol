@@ -69,8 +69,9 @@ contract ItemManager is Ownable {
     }
 
     function triggerPayment(uint _itemIndex) public payable {
-        
-        require(items[_itemIndex]._itemPrice == msg.value, "Only full payments accepted");
+        Item item = items[_itemIndex]._item;
+        require(address(item) == msg.sender, "Only items are allowed to update themselves.");
+        require(item.priceInWei() == msg.value, "Only full payments accepted");
         require(items[_itemIndex]._state == SupplyChainState.Created, "Item is further in the chain");
         items[_itemIndex]._state = SupplyChainState.Paid;
 
